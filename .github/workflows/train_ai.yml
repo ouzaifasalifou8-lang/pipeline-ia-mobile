@@ -10,9 +10,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      
       - name: Installer les dépendances
-        run: pip install huggingface_hub
-      - name: Lancer le script d'entraînement
+        run: pip install -r requirements.txt
+        
+      - name: Lancer l'entraînement AutoTrain
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: python train.py

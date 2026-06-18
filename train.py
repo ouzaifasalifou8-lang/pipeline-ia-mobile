@@ -2,9 +2,8 @@ import os
 import subprocess
 
 def run_training():
-    print("Démarrage de l'entraînement via la ligne de commande...")
+    print("Démarrage de l'entraînement avec le paramètre corrigé...")
     
-    # Commande autotrain pour le fine-tuning LLM
     cmd = [
         "autotrain", "llm",
         "--train",
@@ -17,7 +16,7 @@ def run_training():
         "--trainer", "sft",
         "--target-modules", "all-linear",
         "--push-to-hub",
-        "--repo-id", "ouzaif/Expert-Cyber-Droit-FineTuned",
+        "--project-name", "Expert-Cyber-Droit-FineTuned",
         "--token", os.getenv("HF_TOKEN")
     ]
     

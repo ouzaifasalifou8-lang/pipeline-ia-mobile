@@ -1,0 +1,24 @@
+name: Pipeline MLOps - AutoTrain HF
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  orchestrate-ai:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Récupérer le code du dépôt
+        uses: actions/checkout@v4
+
+      - name: Installer les dépendances minimales
+        run: pip install huggingface_hub
+
+      - name: Déclencher l'entraînement sur le GPU Hugging Face
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          echo "Initialisation du pipeline d'orchestration..."
+          python -c "import os; print('Token détecté :', 'Oui' if os.environ.get('HF_TOKEN') else 'Non')"
+

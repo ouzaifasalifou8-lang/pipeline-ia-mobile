@@ -2,7 +2,7 @@ import os
 import subprocess
 
 def run_training():
-    print("Démarrage de l'entraînement avec le paramètre corrigé...")
+    print("Démarrage de l'entraînement avec le nom d'utilisateur...")
     
     cmd = [
         "autotrain", "llm",
@@ -17,6 +17,7 @@ def run_training():
         "--target-modules", "all-linear",
         "--push-to-hub",
         "--project-name", "Expert-Cyber-Droit-FineTuned",
+        "--username", "ouzaif",
         "--token", os.getenv("HF_TOKEN")
     ]
     

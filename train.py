@@ -1,36 +1,31 @@
 import os
-from autotrain.trainers.text_classification import LLMTrainer, LLMParams
+import subprocess
 
-def run_autotrain():
-    print("Vérification du token Hugging Face...")
-    hf_token = os.getenv("HF_TOKEN")
+def run_training():
+    print("Démarrage de l'entraînement via la ligne de commande...")
     
-    if not hf_token:
-        print("ERREUR : Le token HF_TOKEN n'est pas détecté dans l'environnement.")
-        return
-        
-    print("Configuration des paramètres d'entraînement...")
+    # Commande autotrain pour le fine-tuning LLM
+    cmd = [
+        "autotrain", "llm",
+        "--train",
+        "--model", "Qwen/Qwen2-1.5B",
+        "--data-path", "ouzaif/Expert-Cyber-Droit-Dataset",
+        "--lr", "2e-5",
+        "--epochs", "3",
+        "--batch-size", "2",
+        "--block-size", "512",
+        "--trainer", "sft",
+        "--target-modules", "all-linear",
+        "--push-to-hub",
+        "--repo-id", "ouzaif/Expert-Cyber-Droit-FineTuned",
+        "--token", os.getenv("HF_TOKEN")
+    ]
     
-    # Paramètres du fine-tuning (modèle, dataset, etc.)
-    params = LLMParams(
-        train_data="ouzaif/Expert-Cyber-Droit-Dataset",
-        model="Qwen/Qwen2-1.5B",
-        lr=2e-5,
-        epochs=3,
-        batch_size=2,
-        block_size=512,
-        trainer="sft",
-        target_modules="all-linear",
-        push_to_hub=True,
-        repo_id="ouzaif/Expert-Cyber-Droit-FineTuned",
-        token=hf_token
-    )
-    
-    trainer = LLMTrainer(params)
-    
-    print("Lancement de l'entraînement sur les serveurs GPU distants...")
-    trainer.train()
-    print("Entraînement terminé et modèle poussé sur le Hub avec succès !")
+    result = subprocess.run(cmd, capture_output=True, text=True)
+    print(result.stdout)
+    if result.returncode != 0:
+        print(result.stderr)
+        exit(1)
 
 if __name__ == "__main__":
-    run_autotrain()
+    run_training()

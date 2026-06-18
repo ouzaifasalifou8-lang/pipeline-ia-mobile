@@ -1,27 +1,33 @@
-name: Pipeline MLOps Stable
+name: Pipeline GGUF Final
 
-on: [push]
+on:
+  push:
+    branches:
+      - main
 
 jobs:
-  train-and-convert:
+  convert:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - name: Installer les dépendances
-        run: pip install autotrain-advanced
-      - name: Entraînement
+      - name: Cloner le code
+        uses: actions/checkout@v4
+
+      - name: Installer Python et les outils Hugging Face
+        run: pip install huggingface_hub gguf
+
+      - name: Cloner llama.cpp
+        run: git clone https://github.com/ggerganov/llama.cpp.git
+
+      - name: Lancer la conversion directe
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
-          # Tentative d'entraînement, on ignore l'erreur si le projet existe
-          autotrain llm --train --project-name "Expert-Cyber-Droit-FineTuned" --model "Qwen/Qwen2-1.5B" --data-path . --text-column "text" || echo "Entraînement déjà en place"
-      - name: Archiver le modèle
-        uses: actions/upload-artifact@v4
-        with:
-          name: model-artifact
-          path: Expert-Cyber-Droit-FineTuned/
-      - name: Conversion GGUF
-        run: |
-          git clone https://github.com/ggerganov/llama.cpp.git
-          pip install -r llama.cpp/requirements.txt
-          python3 llama.cpp/convert_hf_to_gguf.py Expert-Cyber-Droit-FineTuned/ --outfile Expert-Cyber-Droit.gguf --outtype f16
+          # Télécharger le modèle fine-tuné depuis le hub
+          python3 -c "from huggingface_hub import snapshot_download; snapshot_download(repo_id='ouzaif/Expert-Cyber-Droit-FineTuned', local_dir='model_hf', token='$HF_TOKEN')"
+          
+          # Convertir le format Hugging Face vers GGUF (FP16)
+          python3 llama.cpp/convert_hf_to_gguf.py model_hf/ --outfile Expert-Cyber-Droit.gguf --outtype f16
+          
+          # Uploader vers le dépôt GGUF
+          python3 -c "from huggingface_hub import HfApi; api = HfApi(); api.upload_file(path_or_fileobj='Expert-Cyber-Droit.gguf', path_in_repo='Expert-Cyber-Droit.gguf', repo_id='ouzaif/Expert-Cyber-Droit-GGUF', token='$HF_TOKEN')"
+          

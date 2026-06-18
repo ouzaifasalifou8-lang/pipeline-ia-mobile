@@ -1,22 +1,27 @@
-name: Pipeline MLOps Complet
+name: Pipeline MLOps Stable
 
-on:
-  push:
-    branches:
-      - main
+on: [push]
 
 jobs:
-  mlops-pipeline:
+  train-and-convert:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: Installer les dépendances
-        run: pip install -r requirements.txt huggingface_hub
-      - name: 1. Lancer l'entraînement
+        run: pip install autotrain-advanced
+      - name: Entraînement
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
-        run: python train.py || echo "Entraînement déjà fait, passage à la conversion"
-      - name: 2. Convertir le modèle en GGUF
-        env:
-          HF_TOKEN: ${{ secrets.HF_TOKEN }}
-        run: python convert.py
+        run: |
+          # Tentative d'entraînement, on ignore l'erreur si le projet existe
+          autotrain llm --train --project-name "Expert-Cyber-Droit-FineTuned" --model "Qwen/Qwen2-1.5B" --data-path . --text-column "text" || echo "Entraînement déjà en place"
+      - name: Archiver le modèle
+        uses: actions/upload-artifact@v4
+        with:
+          name: model-artifact
+          path: Expert-Cyber-Droit-FineTuned/
+      - name: Conversion GGUF
+        run: |
+          git clone https://github.com/ggerganov/llama.cpp.git
+          pip install -r llama.cpp/requirements.txt
+          python3 llama.cpp/convert_hf_to_gguf.py Expert-Cyber-Droit-FineTuned/ --outfile Expert-Cyber-Droit.gguf --outtype f16

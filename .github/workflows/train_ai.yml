@@ -1,4 +1,4 @@
-name: Pipeline MLOps - AutoTrain HF
+name: Pipeline MLOps Complet (Entraînement + Conversion GGUF)
 
 on:
   push:
@@ -6,15 +6,20 @@ on:
       - main
 
 jobs:
-  orchestrate-ai:
+  mlops-pipeline:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       
       - name: Installer les dépendances
-        run: pip install -r requirements.txt
+        run: pip install -r requirements.txt huggingface_hub
         
-      - name: Lancer l'entraînement AutoTrain
+      - name: 1. Lancer l'entraînement AutoTrain
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: python train.py
+        
+      - name: 2. Convertir le modèle en GGUF
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: python convert.py
